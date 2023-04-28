@@ -1,0 +1,112 @@
+<ion-content [fullscreen]="true">
+  <div class="circleBase type2 circle1"></div>
+  <div class="circleBase type1"></div>
+  <div class="circleBase type2 circle2"></div>
+
+  <ion-label class="welcomeMessage">
+    <ion-text color="light">Welcome Back,</ion-text> 
+    <ion-text color="light">
+      <p>Log In!</p>
+    </ion-text>
+  </ion-label> 
+
+  <form [formGroup]="form" (ngSubmit)="onSubmit()">
+    <ion-list lines="none" class="ion-margin ion-padding ion-text-center">
+      <ion-item class="ion-margin-vertical">
+        <ion-icon 
+          name="mail-outline" slot="end" color="medium">
+        </ion-icon>
+        <ion-input 
+          formControlName="email" 
+          placeholder="Enter Email Address">
+        </ion-input>
+      </ion-item>
+      <ion-text 
+        class="ion-text-left"
+        color="danger"
+        *ngIf="!form.get('email').valid && form.get('email').touched">
+        <p class="error">*Please enter proper Email Address</p>
+      </ion-text>
+
+      <ion-item class="ion-margin-vertical">
+        <ion-icon (click)="onChange()"
+          [name]="isTypePassword ? 'lock-closed-outline' : 'lock-open-outline'" 
+          slot="end" 
+          [color]="isTypePassword ? 'medium' : 'primary'">
+        </ion-icon>
+        <ion-input 
+          formControlName="password" 
+          [type]="isTypePassword ? 'password' : 'text'"
+          placeholder="Enter Password">
+        </ion-input>
+      </ion-item>
+      <ion-text 
+        class="ion-text-left"
+        color="danger"
+        *ngIf="!form.get('password').valid && form.get('password').touched">
+        <p 
+          class="error" 
+          *ngIf="form.get('password').invalid && form.get('password').errors['required']">
+          *Please enter your Password
+        </p>
+        <p 
+          class="error" 
+          *ngIf="form.get('password').dirty">
+          *Password must be of atleast 6 characters
+        </p>
+      </ion-text>
+
+      <ion-row class="ion-margin-vertical">
+        <ion-col size="6" class="alignItems">
+          <div align=left>
+            <ion-checkbox></ion-checkbox>
+            <ion-note>Remember me</ion-note>
+          </div>
+        </ion-col>
+        <ion-col size="6">
+          <div align=right>
+            <ion-note routerLink="/forgot-password">Forgot password?</ion-note>
+          </div>
+        </ion-col>
+      </ion-row>
+      <ion-row class="ion-justify-content-center">
+        <ion-button color="primary" shape="round" shape="round" type="submit">Log In</ion-button>
+      </ion-row>
+      <ion-row class="ion-justify-content-center">
+        <ion-item href="{{ googleURL }}">
+          <ion-avatar slot="end">
+            <img alt="sign in with google" src="/assets/icon/google.png" />
+          </ion-avatar>
+          <ion-label>
+            Sign in with:
+          </ion-label>
+        </ion-item>
+        
+        <ion-item href="{{ facebookURL }}">
+          <ion-avatar slot="end">
+            <img alt="sign in with facebook" src="/assets/icon/facebook.png" />
+          </ion-avatar>
+          <ion-label>
+            Sign in with:
+          </ion-label>
+        </ion-item>
+      </ion-row>
+
+      <ion-row class="ion-justify-content-center" *ngIf="isLoginFailed">
+        <ion-item>
+          <ion-label color="danger">Login failed: {{ errorMessage }}</ion-label>
+        </ion-item>
+      </ion-row>
+      
+      <ion-row class="ion-justify-content-center">
+        <ion-note>
+          Not a member yet? <ion-text routerLink="/" color="primary">Sign Up</ion-text>
+        </ion-note>
+      </ion-row>
+    </ion-list>
+  </form>
+</ion-content>
+<ion-footer [translucent]="true">
+  <ion-toolbar>
+    <ion-note slot="end">Powered by: Agile-dev</ion-note>
+</ion-toolbar>
