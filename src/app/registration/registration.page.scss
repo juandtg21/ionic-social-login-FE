@@ -2,15 +2,10 @@
     display: none;
     overflow: hidden;
   }
-  
-ion-content {
-    overflow: hidden;
-    --overflow: hidden;
-  }
-  
-.scroll-content {
-    overflow: hidden;
-  }
+
+ion-list {
+  overflow: auto;
+}
   
 ion-list {
     background: transparent;

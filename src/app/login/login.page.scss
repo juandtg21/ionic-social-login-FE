@@ -1,10 +1,9 @@
 ::-webkit-scrollbar, *::-webkit-scrollbar {
     display: none;
-    overflow: hidden;
 }
-  
-ion-content {
-    --overflow: hidden;
+
+ion-list {
+    overflow: auto;
 }
   
 ion-list {
