@@ -6,12 +6,12 @@
   </ion-toolbar>
 </ion-header>
 
-<ion-content [fullscreen]="true">
-  <ion-header collapse="condense">
-    <ion-toolbar>
-      <ion-title size="large">Home</ion-title>
-    </ion-toolbar>
-  </ion-header>
-
-  <app-explore-container name="Tab 1 page"></app-explore-container>
-</ion-content>
+<div class="card-center">
+  <ion-card *ngFor="let p of people" [style.position]="'absolute'">
+     <img [src]="p.img" [style.width]="'100%'">
+    <ion-card-header>
+      <ion-card-title> {{ p.name }} </ion-card-title>
+      <ion-card-subtitle> {{ p.power }} </ion-card-subtitle>
+    </ion-card-header>
+  </ion-card>
+</div>
