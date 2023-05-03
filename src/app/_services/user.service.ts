@@ -5,7 +5,7 @@ import { AppConstants } from '../common/app.constants';
 
 const httpOptions = {
 		  headers: new HttpHeaders({ 'Content-Type': 'application/json' })
-		};
+};
 
 
 @Injectable({
@@ -35,4 +35,9 @@ export class UserService {
     console.log("getCurrentUser user/me ")
     return this.http.get(AppConstants.API_URL + 'user/me', httpOptions);
   }
+
+  getAllUsers(id): Observable<any> {
+    return this.http.get(AppConstants.ACTIVE + id, httpOptions);
+  }
+
 }

@@ -39,15 +39,16 @@ export class LoginPage implements OnInit {
       }
       else if(token){
         this.tokenStorage.saveToken(token);
-        this.userService.getCurrentUser().subscribe(
-              data => {
-                this.login(data);
-              },
-              err => {
-                this.errorMessage = err.error.message;
-                this.isLoginFailed = true;
-              }
-          );
+        this.userService.getCurrentUser().subscribe({
+          next: data => {
+            this.login(data);
+          },
+          error: err => {
+            this.errorMessage = err.error.message;
+            this.isLoginFailed = true;
+          }
+
+        });
       }
       else if(error){
         this.errorMessage = error;
