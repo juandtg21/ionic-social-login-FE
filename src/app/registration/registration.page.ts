@@ -60,6 +60,7 @@ export class RegistrationPage implements OnInit {
         this.errorMessage = 'Registration successful. Please Login'
         this.isLoading = false;
         this.isAlertOpen = true;
+        this.signupForm.reset();
       },
       err => {
         this.errorMessage = err.error.message;

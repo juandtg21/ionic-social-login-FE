@@ -23,31 +23,10 @@ export class Tab1Page implements AfterViewInit, OnInit {
   }
 
   ngAfterViewInit(): void {
-    const cardArray = this.cards.toArray();
-    this.onSwipe(cardArray);
-  }
-
-  setCardColor(x, element) {
-    let color = '';
-    const abs = Math.abs(x);
-    const min = Math.trunc(Math.min(16 * 16 - abs, 16 * 16))
-    const hexCode = this.decimalToHex(min, 1);
-    if (x < 0) {
-      color = '#FF' + hexCode + hexCode
-    } else {
-      color = '#' + hexCode + 'FF' + hexCode
-    }
-    element.style.background = color;
-  }
-
-  decimalToHex(d, padding): string {
-    let hex = Number(d).toString(16);
-    padding = typeof padding === 'undefined' || padding === null ? (padding = 2 ) : padding;
-
-    while(hex.length < padding) {
-      hex = '0' + hex;
-    }
-    return hex;
+    this.cards.changes.subscribe(() => {
+      const cardArray = this.cards.toArray();
+      this.onSwipe(cardArray);
+    });
   }
 
   onSwipe(cardArray) {
@@ -63,7 +42,6 @@ export class Tab1Page implements AfterViewInit, OnInit {
         },
         onMove: (ev) => {
           card.nativeElement.style.transform = `translateX(${ev.deltaX}px) rotate(${ev.deltaX / 20}deg)`;
-          //this.setCardColor(ev.deltaX, card.nativeElement);
         },
         onEnd: (ev) => {
           card.nativeElement.style.transition = '0.3s ease-out';

@@ -3,7 +3,8 @@ import { NavigationExtras, Router } from '@angular/router';
 import { ModalController, PopoverController } from '@ionic/angular';
 import { Observable, take } from 'rxjs';
 import { TokenStorageService } from '../_services/token-storage.service';
-import { UserService } from '../_services/user.service';
+import { ChatService } from '../_services/chat.service';
+import { WebsocketsService } from '../_services/websockets.service';
 
 @Component({
   selector: 'app-tab2',
@@ -17,39 +18,43 @@ export class Tab2Page {
   segment = 'chats';
   open_new_chat = false;
   users: Observable<any[]>;
-  chatRooms: Observable<any[]>;
+  currentUserId = this.tokenService.getUser().id
   model = {
     icon: 'chatbubbles-outline',
     title: 'No Chat Rooms',
     color: 'danger'
   };
-  // users = [
-  //   {id: 1, name: 'NIkhil', photo: 'https://i.pravatar.cc/315'},
-  //   {id: 2, name: 'XYZ', photo: 'https://i.pravatar.cc/325'},
-  // ];
-  // chatRooms = [
-  //   {id: 1, name: 'NIkhil', photo: 'https://i.pravatar.cc/315'},
-  //   {id: 2, name: 'XYZ', photo: 'https://i.pravatar.cc/325'},
-  // ];
 
   constructor(
     private router: Router,
     private tokenService: TokenStorageService,
-    private userService: UserService
+    public chatService: ChatService,
+    public webSocketService: WebsocketsService
   ) { }
 
   ngOnInit() {
-    this.getRooms();
+    this.getChatRoomsByUser();
   }
 
-  getRooms() {
-    // this.chatService.getId();
+  getChatRoomsByUser() {
+    this.chatService.getChatRoomsByUser().subscribe({
+      next: data => {
+        console.log("dateFromGR::", data)
+        this.chatService.chatRooms.next(data);
+        console.log('chatrooms: ', this.chatService.chatRooms?.getValue());
+      },
+      error: err => {
+        console.error("GRE::", err.message);
+      }
+    });
   }
 
-  onSegmentChanged(event: any) {
-    console.log(event);
-    this.segment = event.detail.value;
-  }
+  handleRefresh(event) {
+    this.webSocketService.reloadRooms();
+    setTimeout(() => {
+      event.target.complete();
+    }, 2000);
+  };
 
   newChat() {
     this.open_new_chat = true;
@@ -57,7 +62,7 @@ export class Tab2Page {
   }
 
   getUsers() {
-    this.users = this.userService.getAllUsers(this.tokenService.getUser().id);
+    this.users = this.chatService.getUsers();
   }
 
   onWillDismiss(event: any) {}
@@ -66,27 +71,44 @@ export class Tab2Page {
     this.modal.dismiss();
     this.open_new_chat = false;
   }
+ 
 
-  async startChat(item) {
+  startChat(item) {
     try {
-      // this.global.showLoader();
-      // create chatroom
-      this.cancel();
-      const navData: NavigationExtras = {
-        queryParams: {
-          name: item?.displayName
+      console.log("item:: ", item);
+      this.chatService.createChatRoom(item?.id).subscribe({
+        next: room => {
+          console.log('room: ', room);
+          this.cancel();
+          const navData: NavigationExtras = {
+            queryParams: {
+              name: item?.displayName
+            }
+          };
+          this.router.navigate(['/tabs', 'tab2', 'chats', room[0]?.roomId], navData);},
+          error: err => {
+          console.error("StartChat", err);
         }
-      };
-      this.router.navigate(['/tabs', 'tab2', 'chats', '1'], navData);
-      // this.global.hideLoader();
+      });
     } catch(e) {
       console.log(e);
       // this.global.hideLoader();
     }
+  }
 
+  onSegmentChanged(event: any) {
+    console.log(event);
+    this.segment = event.detail.value;
   }
 
   getChat(item) {
+    console.log(item?.roomId);
+    const navData: NavigationExtras = {
+        queryParams: {
+          name: item?.displayName
+        }
+    };
+    this.router.navigate(['/tabs', 'tab2', 'chats', item?.roomId], navData);
   }
 
   getUser(user: any) {
