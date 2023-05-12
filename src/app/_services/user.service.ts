@@ -50,8 +50,8 @@ export class UserService {
     return this.http.post(AppConstants.CREATE_CHAT_ROOM, chatRoom);
   }
 
-  findChatRoomByRoomId(chatRoom): Observable<any> {
-    const url = AppConstants.CHAT_ROOM_BY_USERS;
+  findChatRoomByChatRoomSequence(chatRoom): Observable<any> {
+    const url = AppConstants.CHAT_ROOM_BY_SEQUENCE;
     const params = new HttpParams()
     .set('currentUserId', chatRoom.currentUserId)
     .set('members', chatRoom.members);

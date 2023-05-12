@@ -12,11 +12,12 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 export class ChatService {
 
   currentUserId: string;
+  currentChatUser: any;
+  chatRoomId: string;
   public users: Observable<any>;
   public chatRooms = new BehaviorSubject<any[]>([]);
-  public selectedChatRoomMessages: Observable<any>;
   public notifyValueChange = new Subject();
-  public chats = new BehaviorSubject<any[]>([]);
+  public chats: any = [];
 
   constructor(private userService: UserService, 
     private tokenService: TokenStorageService,
@@ -34,6 +35,20 @@ export class ChatService {
     return this.users;
   }
 
+  removeDuplicateRooms(chatRooms: any[]): any[] {
+    const uniqueRooms = [];
+    const roomIds = new Set();
+  
+    for (const room of chatRooms) {
+      if (!roomIds.has(room.roomId)) {
+        uniqueRooms.push(room);
+        roomIds.add(room.roomId);
+      }
+    }
+    console.log("uniqueRooms", uniqueRooms)
+    return uniqueRooms;
+  }
+
   createChatRoom(user_id: any) {
     console.log("user_id::", user_id)
     const chatroom = {
@@ -43,11 +58,11 @@ export class ChatService {
         user_id
       ]
     };
-    return this.userService.findChatRoomByRoomId(chatroom).pipe(
+    return this.userService.findChatRoomByChatRoomSequence(chatroom).pipe(
       switchMap(data => {
         if (data && data.length > 0) {
           console.log("CCR::", data)
-          return of(data[0]); // return existing room
+          return of(data); // return existing room
         } else {
           const data = {
             chatName: name,
@@ -82,6 +97,25 @@ export class ChatService {
         return response;
       })
     );
+  }
+
+  sendMessage(chatRoomId, recipientId, message): Observable<any> {
+    let sender =  this.tokenService.getUser();
+    const headers = this.getHeaders();
+    const messages: any = {
+      chatRoomId: chatRoomId,
+      senderId: sender.id,
+      recipientId: recipientId,
+      message: message,
+    };
+    return this.http.post(AppConstants.SAVE_MESSAGE, messages, headers);
+  }
+
+  public alarmNotify() {
+    const audio = new Audio();
+    audio.src = AppConstants.AUDIO_URL;
+    audio.load();
+    audio.play();
   }
 
   private getHeaders() {

@@ -10,8 +10,9 @@ export class AppConstants {
     public static LOGOUT = AppConstants.AUTH_API + 'logout/';
     public static WEBSOCKET_URL = AppConstants.API_BASE_URL + 'chat';
     public static CHAT_ROOM_BY_USER = AppConstants.API_URL + 'chatroom/user';
-    public static CHAT_ROOM_BY_USERS = AppConstants.API_URL + 'chatroom/rooms';
+    public static CHAT_ROOM_BY_SEQUENCE = AppConstants.API_URL + 'chatroom/rooms';
     public static CREATE_CHAT_ROOM = AppConstants.API_URL + 'chatroom';
     public static CHATS = AppConstants.CREATE_CHAT_ROOM + '/chats/';
+    public static SAVE_MESSAGE = AppConstants.CREATE_CHAT_ROOM + "/save";
     public static AUDIO_URL = 'http://www.pacdv.com/sounds/mechanical_sound_effects/cling_1.wav';
 }

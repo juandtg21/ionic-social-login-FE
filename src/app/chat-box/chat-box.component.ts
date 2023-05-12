@@ -1,4 +1,5 @@
 import { Component, Input, OnInit } from '@angular/core';
+import { ChatService } from '../_services/chat.service';
 
 @Component({
   selector: 'app-chat-box',
@@ -10,7 +11,7 @@ export class ChatBoxComponent implements OnInit {
   @Input() chat: any;
   @Input() current_user_id: any;
 
-  constructor() { }
+  constructor(public chatService: ChatService) { }
 
   ngOnInit() {}
 

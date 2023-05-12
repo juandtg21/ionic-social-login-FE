@@ -1,6 +1,5 @@
 import { ApplicationRef, Injectable } from '@angular/core';
 import { TokenStorageService } from './token-storage.service';
-import { BehaviorSubject, Observable } from 'rxjs';
 import { HttpHeaders } from '@angular/common/http';
 import * as Stomp from 'stompjs';
 import * as SockJS from 'sockjs-client';
@@ -12,47 +11,60 @@ import { ChatService } from './chat.service';
 })
 export class WebsocketsService {
   private webSocketEndPoint = AppConstants.WEBSOCKET_URL;
-  private topicMessages = '/topic/messages';
-  private topicReload = '/topic/reload';
+  private topicReload = '/user/queue/reload';
+  private topicReloadMessages = '/user/queue/reload/messages';
   private stompClient: any;
 
   constructor(private tokenService: TokenStorageService, 
-    private chatService: ChatService) {
+    private chatService: ChatService,
+    private ref: ApplicationRef) {
     console.log('Initialize WebSocket Connection');
     this.connect();
   }
 
   connect(): void {
+    const that = this;
     console.log('Initialize WebSocket Connection');
     const headers = this.getHeaders(this.tokenService.getToken());
     const socket = new SockJS(this.webSocketEndPoint);
     this.stompClient = Stomp.over(socket);
-    this.stompClient.connect(headers, () => {
-      this.stompClient.subscribe(this.topicMessages, (message) => {
-        if (message.body) {
-          const parsedMessage = JSON.parse(message.body);
-          const currentMessages = this.chatService.chats.getValue();
-          const updatedMessages = [...currentMessages, parsedMessage];
-          this.chatService.chats.next(updatedMessages);
-          console.log("MSG::", updatedMessages);
-        }
+    this.stompClient.connect({'user': that.chatService.chatRoomId}, function (frame) {
+      console.log('Connected: ' + frame);
+
+
+      that.stompClient.subscribe(`/topic/messages/${that.chatService.chatRoomId}`, function (message) {
+        console.log("Received message:", message);
+        const parsedMessage = JSON.parse(message.body);
+        if (parsedMessage.chatRoomId === that.chatService.chatRoomId) {
+           console.log("Received message:", parsedMessage);
+           that.chatService.chats.push(parsedMessage);
+           that.chatService.notifyValueChange.next(parsedMessage.senderId);
+          }
+          that.chatService.alarmNotify();
+          that.ref.tick();
       });
+     
   
-      this.stompClient.subscribe(this.topicReload, (responseMessage) => {
+      that.stompClient.subscribe(that.topicReload, function (responseMessage) {
         const userDto: any = JSON.parse(responseMessage.body);
         console.log("userDto", userDto.body);
-        const currentChatRooms = this.chatService.chatRooms.getValue();
-        console.log("currentChatRooms", currentChatRooms);
       
-        // Check if the userDto is already present in the currentChatRooms
-        const existingRoomIndex = currentChatRooms.findIndex(room => room.roomId === userDto.body.roomId);
-        console.log("existingRoomIndex", existingRoomIndex);
-        if (existingRoomIndex === -1) {
-          this.chatService.chatRooms.next(userDto.body);
+        if (userDto.body) {
+          that.chatService.chatRooms.next([]); // Clear the chatRooms list
+          that.chatService.chatRooms.next(userDto.body);
         }
-        
       });
-    }, this.errorCallBack);
+
+      that.stompClient.subscribe(that.topicReloadMessages, function (responseMessage) {
+        const parsedMessage = JSON.parse(responseMessage.body);
+        console.log("responseMessage", responseMessage.body);
+        console.log("responseMessage",  that.chatService.chatRoomId);
+        if (parsedMessage.chatRoomId === that.chatService.chatRoomId) {
+           console.log("responseMessage", parsedMessage);
+           that.chatService.chats.push(parsedMessage);
+          }
+      });
+    }, that.errorCallBack);
   }
 
   disconnect(): void {
@@ -69,15 +81,16 @@ export class WebsocketsService {
     }, 5000);
   }
 
-  sendMessage(chatRoomId, message): void {
+  sendMessage(chatRoomId, receiver, message): void {
     let sender =  this.tokenService.getUser();
     const headers = this.getHeaders(this.tokenService.getToken());
     const messages: any = {
       chatRoomId: chatRoomId,
       senderId: sender.id,
+      receiverName: receiver,
       message: message,
   };
-    this.stompClient.send(`/api/messages`, {}, JSON.stringify(messages), headers);
+    this.stompClient.send(`/api/messages/${chatRoomId}`, {}, JSON.stringify(messages), headers);
   }
 
   reloadRooms(): void {
@@ -86,11 +99,19 @@ export class WebsocketsService {
     this.stompClient.send(`/api/reload`, {}, JSON.stringify(userId.id), headers);
   }
 
+  reloadMessages(): void {
+    let chatRoomId =  this.chatService.chatRoomId;
+    console.log("chatRoomId", chatRoomId);
+    const headers = this.getHeaders(this.tokenService.getToken());
+    this.stompClient.send(`/api/reload/messages`, {}, JSON.stringify(chatRoomId), headers);
+  }
+
   private getHeaders(token: string) {
     const headers = {
         headers: new HttpHeaders({
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
+          'Authorization': `Bearer ${token}`,
+          'user': this.chatService.chatRoomId
         })
     };
     return headers;

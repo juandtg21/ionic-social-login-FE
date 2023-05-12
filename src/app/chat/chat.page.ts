@@ -49,7 +49,7 @@ export class ChatPage implements OnInit {
     next: data => {
       console.log('ngOnInit', data);
       if (data) {
-        this.chatService.chats.next(data);
+        this.chatService.chats = data;
       }
     },
     error: err => {
@@ -63,12 +63,12 @@ export class ChatPage implements OnInit {
   }
 
   scrollToBottom() {
-    console.log('scroll bottom', this.chatService.chats.getValue());
-    if(this.chatService.chats.getValue()) this.content.scrollToBottom(500);
+    if(this.chatService.chats) this.content.scrollToBottom(500);
   }
 
   reloadRooms(): void {
     this.webSocketService.reloadRooms();
+    this.webSocketService.reloadMessages()
   }
 
   sendMessage() {
@@ -77,8 +77,9 @@ export class ChatPage implements OnInit {
       return;
     }
     try {
+      console.log("currentChatUser", this.chatService.currentChatUser.memberId)
       this.isLoading = true;
-      this.webSocketService.sendMessage(this.id, this.message);
+      this.webSocketService.sendMessage(this.id, this.chatService.currentChatUser.memberId, this.message);
       this.message = '';
       this.isLoading = false;
       this.scrollToBottom();

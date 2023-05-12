@@ -1,20 +1,22 @@
-import { Component,ViewChild } from '@angular/core';
+import { Component,OnDestroy,OnInit,ViewChild } from '@angular/core';
 import { NavigationExtras, Router } from '@angular/router';
 import { ModalController, PopoverController } from '@ionic/angular';
-import { Observable, take } from 'rxjs';
+import { Observable, Subscription, take } from 'rxjs';
 import { TokenStorageService } from '../_services/token-storage.service';
 import { ChatService } from '../_services/chat.service';
-import { WebsocketsService } from '../_services/websockets.service';
 
 @Component({
   selector: 'app-tab2',
   templateUrl: 'tab2.page.html',
   styleUrls: ['tab2.page.scss']
 })
-export class Tab2Page {
+export class Tab2Page implements OnInit, OnDestroy {
 
   @ViewChild('new_chat') modal: ModalController;
   @ViewChild('popover') popover: PopoverController;
+
+  public isNotify = false;
+  private subscription: Subscription;
   segment = 'chats';
   open_new_chat = false;
   users: Observable<any[]>;
@@ -28,20 +30,28 @@ export class Tab2Page {
   constructor(
     private router: Router,
     private tokenService: TokenStorageService,
-    public chatService: ChatService,
-    public webSocketService: WebsocketsService
+    public chatService: ChatService
   ) { }
 
   ngOnInit() {
+    this.subscription = this.chatService.notifyValueChange.subscribe((userId) => {
+      console.log("userId", userId)
+      console.log("this.chatService.currentUserId", this.chatService.currentUserId)
+      this.isNotify = userId == this.chatService.currentUserId
+      console.log("isNotify", this.isNotify)
+    })
     this.getChatRoomsByUser();
   }
 
   getChatRoomsByUser() {
     this.chatService.getChatRoomsByUser().subscribe({
       next: data => {
-        console.log("dateFromGR::", data)
-        this.chatService.chatRooms.next(data);
-        console.log('chatrooms: ', this.chatService.chatRooms?.getValue());
+        console.log("userDto", data);
+  
+        if (data) {
+          this.chatService.chatRooms.next([]); // Clear the chatRooms list
+          this.chatService.chatRooms.next(data);
+        }
       },
       error: err => {
         console.error("GRE::", err.message);
@@ -50,7 +60,7 @@ export class Tab2Page {
   }
 
   handleRefresh(event) {
-    this.webSocketService.reloadRooms();
+    this.getChatRoomsByUser();
     setTimeout(() => {
       event.target.complete();
     }, 2000);
@@ -75,18 +85,29 @@ export class Tab2Page {
 
   startChat(item) {
     try {
-      console.log("item:: ", item);
+      this.chatService.currentChatUser = item;
+      console.log("startChat-currentChatUser", this.chatService.currentChatUser);
       this.chatService.createChatRoom(item?.id).subscribe({
-        next: room => {
-          console.log('room: ', room);
+        next: rooms => {
+          console.log('rooms: ', rooms);
           this.cancel();
-          const navData: NavigationExtras = {
-            queryParams: {
-              name: item?.displayName
-            }
-          };
-          this.router.navigate(['/tabs', 'tab2', 'chats', room[0]?.roomId], navData);},
-          error: err => {
+  
+          const roomIndex = rooms.findIndex(room => room.id == item?.id);
+          console.log("roomIndex", roomIndex);
+          if (roomIndex !== -1) {
+            const navData: NavigationExtras = {
+              queryParams: {
+                name: item?.displayName
+              }
+            };
+            this.chatService.chatRoomId = rooms[roomIndex].roomId;
+            this.isNotify = false;
+            this.router.navigate(['/tabs', 'tab2', 'chats', rooms[roomIndex].roomId], navData);
+          } else {
+            console.error('Matching room not found for item:', item?.id);
+          }
+        },
+        error: err => {
           console.error("StartChat", err);
         }
       });
@@ -102,7 +123,10 @@ export class Tab2Page {
   }
 
   getChat(item) {
-    console.log(item?.roomId);
+    this.chatService.currentChatUser = item;
+    this.chatService.chatRoomId = item.roomId;
+    this.isNotify = false;
+    console.log("getChat-currentChatUser", this.chatService.currentChatUser);
     const navData: NavigationExtras = {
         queryParams: {
           name: item?.displayName
@@ -113,6 +137,10 @@ export class Tab2Page {
 
   getUser(user: any) {
     return user;
+  }
+
+  ngOnDestroy(): void {
+    this.subscription.unsubscribe();
   }
 
 }
