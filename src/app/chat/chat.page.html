@@ -3,6 +3,9 @@
     <ion-buttons slot="start">
       <ion-back-button defaultHref="/home" (click)="reloadRooms()"></ion-back-button>
     </ion-buttons>
+    <ion-avatar slot="start">
+      <img [src]="this.chatService.picture" />
+    </ion-avatar>
     <ion-title>{{name}}</ion-title>
   </ion-toolbar>
 </ion-header>

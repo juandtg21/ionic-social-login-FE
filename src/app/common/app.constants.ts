@@ -14,5 +14,5 @@ export class AppConstants {
     public static CREATE_CHAT_ROOM = AppConstants.API_URL + 'chatroom';
     public static CHATS = AppConstants.CREATE_CHAT_ROOM + '/chats/';
     public static SAVE_MESSAGE = AppConstants.CREATE_CHAT_ROOM + "/save";
-    public static AUDIO_URL = 'http://www.pacdv.com/sounds/mechanical_sound_effects/cling_1.wav';
+    public static AUDIO_URL = 'https://www.pacdv.com/sounds/miscellaneous_sounds/bottle_pop_2.wav';
 }

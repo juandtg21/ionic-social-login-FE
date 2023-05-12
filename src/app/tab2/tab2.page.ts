@@ -101,6 +101,7 @@ export class Tab2Page implements OnInit, OnDestroy {
               }
             };
             this.chatService.chatRoomId = rooms[roomIndex].roomId;
+            this.chatService.picture = item?.picture != null ? item.picture : "//ssl.gstatic.com/accounts/ui/avatar_2x.png";
             this.isNotify = false;
             this.router.navigate(['/tabs', 'tab2', 'chats', rooms[roomIndex].roomId], navData);
           } else {
@@ -125,6 +126,7 @@ export class Tab2Page implements OnInit, OnDestroy {
   getChat(item) {
     this.chatService.currentChatUser = item;
     this.chatService.chatRoomId = item.roomId;
+    this.chatService.picture = item?.picture != null ? item.picture : "//ssl.gstatic.com/accounts/ui/avatar_2x.png";
     this.isNotify = false;
     console.log("getChat-currentChatUser", this.chatService.currentChatUser);
     const navData: NavigationExtras = {

@@ -14,6 +14,7 @@ export class ChatService {
   currentUserId: string;
   currentChatUser: any;
   chatRoomId: string;
+  picture: string;
   public users: Observable<any>;
   public chatRooms = new BehaviorSubject<any[]>([]);
   public notifyValueChange = new Subject();

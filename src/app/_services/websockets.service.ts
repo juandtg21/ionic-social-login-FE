@@ -13,7 +13,7 @@ export class WebsocketsService {
   private webSocketEndPoint = AppConstants.WEBSOCKET_URL;
   private topicReload = '/user/queue/reload';
   private topicReloadMessages = '/user/queue/reload/messages';
-  private stompClient: any;
+  public stompClient: any;
 
   constructor(private tokenService: TokenStorageService, 
     private chatService: ChatService,
@@ -32,7 +32,7 @@ export class WebsocketsService {
       console.log('Connected: ' + frame);
 
 
-      that.stompClient.subscribe(`/topic/messages/${that.chatService.chatRoomId}`, function (message) {
+      that.stompClient.subscribe(`/queue/${that.chatService.chatRoomId}/messages`, function (message) {
         console.log("Received message:", message);
         const parsedMessage = JSON.parse(message.body);
         if (parsedMessage.chatRoomId === that.chatService.chatRoomId) {
@@ -58,11 +58,12 @@ export class WebsocketsService {
       that.stompClient.subscribe(that.topicReloadMessages, function (responseMessage) {
         const parsedMessage = JSON.parse(responseMessage.body);
         console.log("responseMessage", responseMessage.body);
-        console.log("responseMessage",  that.chatService.chatRoomId);
-        if (parsedMessage.chatRoomId === that.chatService.chatRoomId) {
-           console.log("responseMessage", parsedMessage);
-           that.chatService.chats.push(parsedMessage);
-          }
+        console.log("chatRoomId",  that.chatService.chatRoomId);
+        parsedMessage.forEach(parsedMessage => {
+          if (parsedMessage.chatRoomId === that.chatService.chatRoomId) {
+            console.log("responseMessage", parsedMessage);
+            that.chatService.chats.push(parsedMessage);
+          }});
       });
     }, that.errorCallBack);
   }

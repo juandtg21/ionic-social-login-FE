@@ -15,6 +15,7 @@ export class ChatPage implements OnInit {
   @ViewChild(IonContent, { static: false }) content: IonContent;
   id: string;
   name: string;
+  picture: string;
   message: string;
   isLoading: boolean;
   model = {
@@ -33,6 +34,7 @@ export class ChatPage implements OnInit {
   ngOnInit() {
   const data: any = this.route.snapshot.queryParams;
   console.log('data: ', data);
+  console.log('data: ', this.chatService.picture);
   if (data?.name) {
     this.name = data.name;
   }
@@ -47,13 +49,12 @@ export class ChatPage implements OnInit {
 
   this.chatService.getChatRoomMessages(this.id).subscribe({
     next: data => {
-      console.log('ngOnInit', data);
       if (data) {
         this.chatService.chats = data;
       }
     },
     error: err => {
-      console.error("GRE::", err);
+      console.error("error getting chats", err);
     }
   });
 }
@@ -68,7 +69,9 @@ export class ChatPage implements OnInit {
 
   reloadRooms(): void {
     this.webSocketService.reloadRooms();
-    this.webSocketService.reloadMessages()
+    this.chatService.chats = [];
+    //this.webSocketService.reloadMessages()
+    this.reconnect();
   }
 
   sendMessage() {
@@ -79,6 +82,7 @@ export class ChatPage implements OnInit {
     try {
       console.log("currentChatUser", this.chatService.currentChatUser.memberId)
       this.isLoading = true;
+      this.reconnect();
       this.webSocketService.sendMessage(this.id, this.chatService.currentChatUser.memberId, this.message);
       this.message = '';
       this.isLoading = false;
@@ -87,6 +91,17 @@ export class ChatPage implements OnInit {
       this.isLoading = false;
       console.log(e);
       // this.global.errorToast();
+    }
+  }
+
+  private reconnect(): void {
+    console.log("Server connected?", this.webSocketService.stompClient.connected)
+    if (this.webSocketService.stompClient == null || 
+      !this.webSocketService.stompClient.connected) {
+        console.log('Reconnecting...');
+        setTimeout(() => {
+          this.webSocketService.connect();
+        }, 5000);
     }
   }
 
