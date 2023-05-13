@@ -36,8 +36,9 @@ export class ChatPage implements OnInit {
   ) { }
 
   ngOnInit() {
-  const data: any = this.route.snapshot.queryParams;
-  if (data?.name) {
+    this.chatService.chats = [];
+    const data: any = this.route.snapshot.queryParams;
+    if (data?.name) {
     this.name = data.name;
   }
   
@@ -47,7 +48,7 @@ export class ChatPage implements OnInit {
     return;
   } 
   this.id = id;
-
+  
   this.chatService.getChatRoomMessages(this.id).subscribe({
     next: data => {
       if (data) {
@@ -69,8 +70,8 @@ export class ChatPage implements OnInit {
   }
 
   reloadRooms(): void {
-    this.webSocketService.reloadRooms();
     this.chatService.chats = [];
+    this.webSocketService.reloadRooms();
     this.disconnect();
   }
 
