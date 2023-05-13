@@ -4,6 +4,7 @@ import { ModalController, PopoverController } from '@ionic/angular';
 import { Observable, Subscription, take } from 'rxjs';
 import { TokenStorageService } from '../_services/token-storage.service';
 import { ChatService } from '../_services/chat.service';
+import { WebsocketsService } from '../_services/websockets.service';
 
 @Component({
   selector: 'app-tab2',
@@ -30,15 +31,13 @@ export class Tab2Page implements OnInit, OnDestroy {
   constructor(
     private router: Router,
     private tokenService: TokenStorageService,
-    public chatService: ChatService
+    public chatService: ChatService,
+    public webSocketService: WebsocketsService
   ) { }
 
   ngOnInit() {
     this.subscription = this.chatService.notifyValueChange.subscribe((userId) => {
-      console.log("userId", userId)
-      console.log("this.chatService.currentUserId", this.chatService.currentUserId)
       this.isNotify = userId == this.chatService.currentUserId
-      console.log("isNotify", this.isNotify)
     })
     this.getChatRoomsByUser();
   }
@@ -46,8 +45,6 @@ export class Tab2Page implements OnInit, OnDestroy {
   getChatRoomsByUser() {
     this.chatService.getChatRoomsByUser().subscribe({
       next: data => {
-        console.log("userDto", data);
-  
         if (data) {
           this.chatService.chatRooms.next([]); // Clear the chatRooms list
           this.chatService.chatRooms.next(data);
@@ -86,14 +83,11 @@ export class Tab2Page implements OnInit, OnDestroy {
   startChat(item) {
     try {
       this.chatService.currentChatUser = item;
-      console.log("startChat-currentChatUser", this.chatService.currentChatUser);
       this.chatService.createChatRoom(item?.id).subscribe({
         next: rooms => {
-          console.log('rooms: ', rooms);
           this.cancel();
   
           const roomIndex = rooms.findIndex(room => room.id == item?.id);
-          console.log("roomIndex", roomIndex);
           if (roomIndex !== -1) {
             const navData: NavigationExtras = {
               queryParams: {
@@ -103,6 +97,7 @@ export class Tab2Page implements OnInit, OnDestroy {
             this.chatService.chatRoomId = rooms[roomIndex].roomId;
             this.chatService.picture = item?.picture != null ? item.picture : "//ssl.gstatic.com/accounts/ui/avatar_2x.png";
             this.isNotify = false;
+            this.webSocketService.connect();
             this.router.navigate(['/tabs', 'tab2', 'chats', rooms[roomIndex].roomId], navData);
           } else {
             console.error('Matching room not found for item:', item?.id);
@@ -114,12 +109,10 @@ export class Tab2Page implements OnInit, OnDestroy {
       });
     } catch(e) {
       console.log(e);
-      // this.global.hideLoader();
     }
   }
 
   onSegmentChanged(event: any) {
-    console.log(event);
     this.segment = event.detail.value;
   }
 
@@ -128,12 +121,12 @@ export class Tab2Page implements OnInit, OnDestroy {
     this.chatService.chatRoomId = item.roomId;
     this.chatService.picture = item?.picture != null ? item.picture : "//ssl.gstatic.com/accounts/ui/avatar_2x.png";
     this.isNotify = false;
-    console.log("getChat-currentChatUser", this.chatService.currentChatUser);
     const navData: NavigationExtras = {
         queryParams: {
           name: item?.displayName
         }
     };
+    this.webSocketService.connect();
     this.router.navigate(['/tabs', 'tab2', 'chats', item?.roomId], navData);
   }
 

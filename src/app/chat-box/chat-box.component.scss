@@ -83,7 +83,6 @@ ion-item {
         border-bottom-color: transparent;
         border-bottom-style: solid;
         border-bottom-width: 0px;
-        // border-bottom: 9px solid #DCF8C6;
         border-bottom: 9px solid var(--ion-color-primary);
         border-radius: 20px 0;
         width: 15px;
@@ -93,7 +92,6 @@ ion-item {
         right: 0px;     
     }
     ion-label {
-        // background-color: #DCF8C6;
         background-color: var(--ion-color-primary);
         color: #fff;
         ion-text {

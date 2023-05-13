@@ -15,6 +15,7 @@ export class ChatService {
   currentChatUser: any;
   chatRoomId: string;
   picture: string;
+  isTyping: false;
   public users: Observable<any>;
   public chatRooms = new BehaviorSubject<any[]>([]);
   public notifyValueChange = new Subject();
@@ -26,32 +27,16 @@ export class ChatService {
 
   getId() {
     this.currentUserId = this.tokenService.getUser().id;
-    console.log(this.currentUserId);
   }
 
   getUsers(): Observable<any> {
     const httpOptions = this.getHeaders();
-    console.log("getUsers", this.currentUserId)
     this.users = this.http.get(AppConstants.ACTIVE + this.currentUserId, httpOptions);
     return this.users;
   }
 
-  removeDuplicateRooms(chatRooms: any[]): any[] {
-    const uniqueRooms = [];
-    const roomIds = new Set();
-  
-    for (const room of chatRooms) {
-      if (!roomIds.has(room.roomId)) {
-        uniqueRooms.push(room);
-        roomIds.add(room.roomId);
-      }
-    }
-    console.log("uniqueRooms", uniqueRooms)
-    return uniqueRooms;
-  }
-
   createChatRoom(user_id: any) {
-    console.log("user_id::", user_id)
+    
     const chatroom = {
       currentUserId: this.currentUserId,
       members: [
@@ -62,8 +47,7 @@ export class ChatService {
     return this.userService.findChatRoomByChatRoomSequence(chatroom).pipe(
       switchMap(data => {
         if (data && data.length > 0) {
-          console.log("CCR::", data)
-          return of(data); // return existing room
+          return of(data);
         } else {
           const data = {
             chatName: name,
@@ -83,18 +67,15 @@ export class ChatService {
     this.getId();
     const httpOptions = this.getHeaders();
     const url = `${AppConstants.CHAT_ROOM_BY_USER}/${this.currentUserId}`;
-    console.log("URL:: ", url)
     return this.http.get(url, httpOptions);
   }
 
   getChatRoomMessages(chatRoomId: string): Observable<any[]> {
     const httpOptions = this.getHeaders();
     const url = `${AppConstants.CHATS}${chatRoomId}`;
-    console.log("URL:: ", url)
   
     return this.http.get<any[]>(url, httpOptions).pipe(
       map(response => {
-        console.log("response:: ", response)
         return response;
       })
     );

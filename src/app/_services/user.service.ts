@@ -41,12 +41,10 @@ export class UserService {
 
   getChatRoomsByUser(id): Observable<any> {
     const url = AppConstants.CHAT_ROOM_BY_USER + id;
-    console.log("URL:: ", url)
     return this.http.get(url, httpOptions);
   }
 
   createChatRoom(chatRoom): Observable<any> {
-    console.log("createChatRoom", chatRoom);
     return this.http.post(AppConstants.CREATE_CHAT_ROOM, chatRoom);
   }
 
@@ -62,7 +60,6 @@ export class UserService {
   }
 
   logout(currentUserId) {
-    console.log("LG::", AppConstants.LOGOUT + currentUserId);
     return this.http.get(AppConstants.LOGOUT + currentUserId)
   }
 

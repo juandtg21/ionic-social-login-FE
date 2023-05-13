@@ -7,6 +7,9 @@
       <img [src]="this.chatService.picture" />
     </ion-avatar>
     <ion-title>{{name}}</ion-title>
+    <ion-toolbar color="primary" *ngIf="this.chatService.isTyping">
+      <ion-title>{{ this.chatService.isTyping }}</ion-title>
+    </ion-toolbar>
   </ion-toolbar>
 </ion-header>
 
@@ -32,12 +35,13 @@
 <ion-footer>
   <ion-toolbar color="light">
     <ion-textarea 
-      autoGrow 
-      rows="1" 
-      placeholder="Send message" 
-      class="ion-text-center" 
-      [(ngModel)]="message">
-    </ion-textarea>
+    autoGrow 
+    rows="1" 
+    placeholder="Send message" 
+    class="ion-text-center" 
+    [(ngModel)]="message"
+    (ionInput)="onInputChange()"
+    ></ion-textarea>
     <ion-buttons slot="end">
       <ion-fab-button *ngIf="!isLoading" size="small" color="primary" (click)="sendMessage()">
         <ion-icon name="send"></ion-icon>

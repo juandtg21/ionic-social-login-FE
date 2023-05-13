@@ -2,6 +2,7 @@ import { Component, AfterViewInit, ViewChildren, ElementRef, QueryList, NgZone, 
 import { GestureController, IonCard, Platform } from '@ionic/angular';
 import { TokenStorageService } from '../_services/token-storage.service';
 import { UserService } from '../_services/user.service';
+import { ChatService } from '../_services/chat.service';
 
 @Component({
   selector: 'app-tab1',
@@ -16,7 +17,8 @@ export class Tab1Page implements AfterViewInit, OnInit {
 
   constructor(private gestureCtrl: GestureController, 
     private tokenService: TokenStorageService, 
-    private userService: UserService) {}
+    private userService: UserService,
+    private chatService: ChatService) {}
 
   ngOnInit(): void {
     this.getAllUsers();
@@ -32,7 +34,9 @@ export class Tab1Page implements AfterViewInit, OnInit {
   onSwipe(cardArray) {
     const windowWidth = window.innerWidth;
     for (let i = 0; i < cardArray.length; i++) {
+     
       const card = cardArray[i];
+      const user = this.people[i];
       const gesture = this.gestureCtrl.create({
         el: card.nativeElement,
         gestureName: 'swipe',
@@ -49,6 +53,12 @@ export class Tab1Page implements AfterViewInit, OnInit {
             card.nativeElement.style.transform = `translateX(${windowWidth * 1.5}px)`;
             if (card.nativeElement.style.transform = windowWidth * 1.5) {
               console.log("like")
+              this.chatService.createChatRoom(user.id).subscribe({
+                next: () => {},
+                error: err => {
+                  console.error(err);
+                }
+              })
             }
           } else if (ev.deltaX < -windowWidth / 2) {
             card.nativeElement.style.transform = `translateX(-${windowWidth * 1.5}px)`;
@@ -67,6 +77,7 @@ export class Tab1Page implements AfterViewInit, OnInit {
 
   getAllUsers() {
     const currentUser = this.tokenService.getUser().id;
+    this.chatService.currentUserId = currentUser;
     this.userService.getAllUsers(currentUser).subscribe({
       next: data => {
         this.people = data;

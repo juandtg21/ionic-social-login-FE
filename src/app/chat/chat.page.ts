@@ -18,6 +18,10 @@ export class ChatPage implements OnInit {
   picture: string;
   message: string;
   isLoading: boolean;
+  isTyping = false;
+  typingStatusMessage = '';
+  typingTimer: any;
+  typingTimeoutDuration = 1000;
   model = {
     icon: 'chatbubbles-outline',
     title: 'No Conversation',
@@ -33,14 +37,11 @@ export class ChatPage implements OnInit {
 
   ngOnInit() {
   const data: any = this.route.snapshot.queryParams;
-  console.log('data: ', data);
-  console.log('data: ', this.chatService.picture);
   if (data?.name) {
     this.name = data.name;
   }
   
   const id = this.route.snapshot.paramMap.get('id');
-  console.log('check id: ', id);
   if (!id) {
     this.navCtrl.back();
     return;
@@ -70,39 +71,53 @@ export class ChatPage implements OnInit {
   reloadRooms(): void {
     this.webSocketService.reloadRooms();
     this.chatService.chats = [];
-    //this.webSocketService.reloadMessages()
-    this.reconnect();
+    this.disconnect();
   }
 
   sendMessage() {
     if(!this.message || this.message?.trim() == '') {
-      // this.global.errorToast('Please enter a proper message', 2000);
+
       return;
     }
     try {
-      console.log("currentChatUser", this.chatService.currentChatUser.memberId)
       this.isLoading = true;
-      this.reconnect();
-      this.webSocketService.sendMessage(this.id, this.chatService.currentChatUser.memberId, this.message);
+      this.webSocketService.sendMessage(this.id, this.chatService.currentChatUser.email, this.message);
       this.message = '';
       this.isLoading = false;
       this.scrollToBottom();
     } catch(e) {
       this.isLoading = false;
       console.log(e);
-      // this.global.errorToast();
     }
   }
 
-  private reconnect(): void {
-    console.log("Server connected?", this.webSocketService.stompClient.connected)
-    if (this.webSocketService.stompClient == null || 
-      !this.webSocketService.stompClient.connected) {
-        console.log('Reconnecting...');
-        setTimeout(() => {
-          this.webSocketService.connect();
-        }, 5000);
+  startTyping() {
+    clearTimeout(this.typingTimer); // Clear any previous typing timeout
+    this.webSocketService.sendTypingStatus("is typing...", this.chatService.currentChatUser.email);
+    // Set a timeout to stop typing if there is no activity after a certain duration
+    this.typingTimer = setTimeout(() => {
+      this.stopTyping();
+    }, this.typingTimeoutDuration);
+  }
+  
+  stopTyping() {
+    this.webSocketService.sendTypingStatus("", this.chatService.currentChatUser.email);
+  }
+
+  onInputChange() {
+    clearTimeout(this.typingTimer); // Clear any previous typing timeout
+
+    if (!this.isTyping) {
+        this.startTyping();
+    } else {
+      this.stopTyping();
     }
+  }
+
+  private disconnect(): void {
+    setTimeout(() => {
+      this.webSocketService.disconnect();
+    }, 500);
   }
 
 }

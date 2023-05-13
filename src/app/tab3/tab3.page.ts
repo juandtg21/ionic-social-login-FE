@@ -32,7 +32,6 @@ export class Tab3Page {
   logout(): void {
     this.userService.logout(this.tokenStorageService.getUser().id).subscribe({
       next: data => {
-        console.log("Update user status successful.");
         this.tokenStorageService.signOut();
         this.router.navigate(['/login']).then(() => {
           window.location.reload();
