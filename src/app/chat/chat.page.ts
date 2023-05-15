@@ -71,7 +71,7 @@ export class ChatPage implements OnInit {
 
   reloadRooms(): void {
     this.chatService.chats = [];
-    this.webSocketService.reloadRooms();
+    this.webSocketService.sendChatRoomReload();
     this.disconnect();
   }
 
@@ -94,7 +94,7 @@ export class ChatPage implements OnInit {
 
   startTyping() {
     clearTimeout(this.typingTimer); // Clear any previous typing timeout
-    this.webSocketService.sendTypingStatus("is typing...", this.chatService.currentChatUser.email);
+    this.webSocketService.sendTypingNotifications("is typing...", this.chatService.currentChatUser.email);
     // Set a timeout to stop typing if there is no activity after a certain duration
     this.typingTimer = setTimeout(() => {
       this.stopTyping();
@@ -102,7 +102,7 @@ export class ChatPage implements OnInit {
   }
   
   stopTyping() {
-    this.webSocketService.sendTypingStatus("", this.chatService.currentChatUser.email);
+    this.webSocketService.sendTypingNotifications("", this.chatService.currentChatUser.email);
   }
 
   onInputChange() {

@@ -20,42 +20,64 @@ export class WebsocketsService {
 
   connect(): void {
     const that = this;
-    const headers = this.getHeaders(this.tokenService.getToken());
-    const socket = new SockJS(this.webSocketEndPoint);
+    const headers = {
+      'Authorization': that.tokenService.getToken()
+    };
+    const socket = new SockJS(that.webSocketEndPoint);
     this.stompClient = Stomp.over(socket);
-    this.stompClient.debug = false;
-    this.stompClient.connect({'Authorization': that.tokenService.getToken()}, function (frame) {
-      that.stompClient.subscribe(`/user/${that.chatService.chatRoomId}/queue/messages`, function (message) {
-        const parsedMessage = JSON.parse(message.body);
-        if (parsedMessage.chatRoomId === that.chatService.chatRoomId) {
-           that.chatService.chats.push(parsedMessage);
-           that.chatService.notifyValueChange.next(parsedMessage.senderId);
-          }
-          that.chatService.alarmNotify();
-          that.ref.tick();
-      });
-     
-  
-      that.stompClient.subscribe(`/user/${that.tokenService.getUser().email}/queue/reload`, function (responseMessage) {
-        const userDto: any = JSON.parse(responseMessage.body);
-      
-        if (userDto.body) {
-          that.chatService.chatRooms.next([]); // Clear the chatRooms list
-          that.chatService.chatRooms.next(userDto.body);
-        }
-      });
+    //this.stompClient.debug = false;
+    this.stompClient.connect(headers, function (frame) {
 
-      that.stompClient.subscribe(`/user/${that.chatService.chatRoomId}/queue/typing`, function (typing) {
-        const parsedMessage = JSON.parse(typing.body);
-        if (parsedMessage.email === that.chatService.currentChatUser.email) {
-          that.chatService.isTyping = parsedMessage.isTyping;
-        }
-      });
+      that.subscribeToChatMessages();
+      that.subscribeToChatRoomReload();
+      that.subscribeToTypingNotifications();
+      
     }, that.errorCallBack);
   }
 
-  disconnect(): void {
+  connectAndSubscribeToQueues(): void {
+    this.connect();
+  }
+
+  subscribeToChatMessages(): void {
+    const that = this;
+    const chatRoomId = this.chatService.chatRoomId;
+    this.stompClient.subscribe(`/user/${chatRoomId}/queue/messages`, function (message) {
+      const parsedMessage = JSON.parse(message.body);
+      if (parsedMessage.chatRoomId === chatRoomId) {
+        that.chatService.chats.push(parsedMessage);
+        that.chatService.alarmNotify();
+      } else {
+        that.chatService.notifyValueChange.next(parsedMessage.senderId);
+      }
+      that.ref.tick();
+    });
+  }
   
+  subscribeToChatRoomReload(): void {
+    const that = this;
+    const userEmail = this.tokenService.getUser().email;
+    this.stompClient.subscribe(`/user/${userEmail}/queue/reload`, function (responseMessage) {
+      const userDto: any = JSON.parse(responseMessage.body);
+      if (userDto.body) {
+        that.chatService.chatRooms.next([]); // Clear the chatRooms list
+        that.chatService.chatRooms.next(userDto.body);
+      }
+    });
+  }
+
+  subscribeToTypingNotifications(): void {
+    const that = this;
+    const chatRoomId = this.chatService.chatRoomId;
+    this.stompClient.subscribe(`/user/${chatRoomId}/queue/typing`, function (typing) {
+      const parsedMessage = JSON.parse(typing.body);
+      if (parsedMessage.email === that.chatService.currentChatUser.email) {
+        that.chatService.isTyping = parsedMessage.isTyping;
+      }
+    });
+  }
+
+  disconnect(): void {
     if (this.stompClient != null) {
       this.stompClient.disconnect();
     }
@@ -79,7 +101,7 @@ export class WebsocketsService {
     this.stompClient.send(`/api/messages/${chatRoomId}`, headers, JSON.stringify(messages));
   }
 
-  sendTypingStatus(isTyping, receiver) {
+  sendTypingNotifications(isTyping, receiver) {
     let sender =  this.tokenService.getUser();
     const message = {
       email: sender.email,
@@ -90,16 +112,10 @@ export class WebsocketsService {
     this.stompClient.send(`/api/typing`, {}, JSON.stringify(message));
   }
 
-  reloadRooms(): void {
+  sendChatRoomReload(): void {
     let user =  this.tokenService.getUser();
     const headers = this.getHeaders(this.tokenService.getToken());
     this.stompClient.send(`/api/reload`, headers, JSON.stringify(user.id));
-  }
-
-  reloadMessages(): void {
-    let chatRoomId =  this.chatService.chatRoomId;
-    const headers = this.getHeaders(this.tokenService.getToken());
-    this.stompClient.send(`/api/reload/messages`, headers, JSON.stringify(chatRoomId));
   }
 
   private getHeaders(token: string) {

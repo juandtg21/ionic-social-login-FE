@@ -97,7 +97,7 @@ export class Tab2Page implements OnInit, OnDestroy {
             this.chatService.chatRoomId = rooms[roomIndex].roomId;
             this.chatService.picture = item?.picture != null ? item.picture : "//ssl.gstatic.com/accounts/ui/avatar_2x.png";
             this.isNotify = false;
-            this.webSocketService.connect();
+            this.webSocketService.connectAndSubscribeToQueues();
             this.router.navigate(['/tabs', 'tab2', 'chats', rooms[roomIndex].roomId], navData);
           } else {
             console.error('Matching room not found for item:', item?.id);
@@ -126,7 +126,7 @@ export class Tab2Page implements OnInit, OnDestroy {
           name: item?.displayName
         }
     };
-    this.webSocketService.connect();
+    this.webSocketService.connectAndSubscribeToQueues();
     this.router.navigate(['/tabs', 'tab2', 'chats', item?.roomId], navData);
   }
 
