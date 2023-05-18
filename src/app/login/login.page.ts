@@ -76,6 +76,7 @@ export class LoginPage implements OnInit {
       data => {
         this.tokenStorage.saveToken(data.accessToken);
         this.login(data.user);
+        this.form.reset();
       },
       err => {
         this.errorMessage = err.error.message;

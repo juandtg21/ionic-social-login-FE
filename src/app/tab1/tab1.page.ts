@@ -2,6 +2,7 @@ import { Component, AfterViewInit, ViewChildren, ElementRef, QueryList, NgZone, 
 import { GestureController, IonCard, Platform } from '@ionic/angular';
 import { TokenStorageService } from '../_services/token-storage.service';
 import { UserService } from '../_services/user.service';
+import { ChatService } from '../_services/chat.service';
 
 @Component({
   selector: 'app-tab1',
@@ -16,44 +17,26 @@ export class Tab1Page implements AfterViewInit, OnInit {
 
   constructor(private gestureCtrl: GestureController, 
     private tokenService: TokenStorageService, 
-    private userService: UserService) {}
+    private userService: UserService,
+    private chatService: ChatService) {}
 
   ngOnInit(): void {
     this.getAllUsers();
   }
 
   ngAfterViewInit(): void {
-    const cardArray = this.cards.toArray();
-    this.onSwipe(cardArray);
-  }
-
-  setCardColor(x, element) {
-    let color = '';
-    const abs = Math.abs(x);
-    const min = Math.trunc(Math.min(16 * 16 - abs, 16 * 16))
-    const hexCode = this.decimalToHex(min, 1);
-    if (x < 0) {
-      color = '#FF' + hexCode + hexCode
-    } else {
-      color = '#' + hexCode + 'FF' + hexCode
-    }
-    element.style.background = color;
-  }
-
-  decimalToHex(d, padding): string {
-    let hex = Number(d).toString(16);
-    padding = typeof padding === 'undefined' || padding === null ? (padding = 2 ) : padding;
-
-    while(hex.length < padding) {
-      hex = '0' + hex;
-    }
-    return hex;
+    this.cards.changes.subscribe(() => {
+      const cardArray = this.cards.toArray();
+      this.onSwipe(cardArray);
+    });
   }
 
   onSwipe(cardArray) {
     const windowWidth = window.innerWidth;
     for (let i = 0; i < cardArray.length; i++) {
+     
       const card = cardArray[i];
+      const user = this.people[i];
       const gesture = this.gestureCtrl.create({
         el: card.nativeElement,
         gestureName: 'swipe',
@@ -63,7 +46,6 @@ export class Tab1Page implements AfterViewInit, OnInit {
         },
         onMove: (ev) => {
           card.nativeElement.style.transform = `translateX(${ev.deltaX}px) rotate(${ev.deltaX / 20}deg)`;
-          //this.setCardColor(ev.deltaX, card.nativeElement);
         },
         onEnd: (ev) => {
           card.nativeElement.style.transition = '0.3s ease-out';
@@ -71,6 +53,12 @@ export class Tab1Page implements AfterViewInit, OnInit {
             card.nativeElement.style.transform = `translateX(${windowWidth * 1.5}px)`;
             if (card.nativeElement.style.transform = windowWidth * 1.5) {
               console.log("like")
+              this.chatService.createChatRoom(user.id).subscribe({
+                next: () => {},
+                error: err => {
+                  console.error(err);
+                }
+              })
             }
           } else if (ev.deltaX < -windowWidth / 2) {
             card.nativeElement.style.transform = `translateX(-${windowWidth * 1.5}px)`;
@@ -89,6 +77,7 @@ export class Tab1Page implements AfterViewInit, OnInit {
 
   getAllUsers() {
     const currentUser = this.tokenService.getUser().id;
+    this.chatService.currentUserId = currentUser;
     this.userService.getAllUsers(currentUser).subscribe({
       next: data => {
         this.people = data;

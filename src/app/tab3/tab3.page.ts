@@ -1,6 +1,8 @@
 import { Component, Renderer2 } from '@angular/core';
 import { TokenStorageService } from '../_services/token-storage.service';
 import { Router } from '@angular/router';
+import { UserService } from '../_services/user.service';
+import { catchError, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-tab3',
@@ -10,6 +12,7 @@ import { Router } from '@angular/router';
 export class Tab3Page {
   constructor(private renderer: Renderer2, 
     private tokenStorageService: TokenStorageService,
+    private userService: UserService,
     private router: Router) {}
 
   currentUser: any;
@@ -27,8 +30,17 @@ export class Tab3Page {
   }
 
   logout(): void {
-    this.tokenStorageService.signOut();
-    this.router.navigate(['/login']);
+    this.userService.logout(this.tokenStorageService.getUser().id).subscribe({
+      next: data => {
+        this.tokenStorageService.signOut();
+        this.router.navigate(['/login']).then(() => {
+          window.location.reload();
+        });
+      },
+      error: err => {
+        console.error("Update user status failed: ", err);
+      }
+    });
+  
   }
-
 }

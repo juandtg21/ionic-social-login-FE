@@ -51,15 +51,14 @@ export class RegistrationPage implements OnInit {
 
   onSubmit(): void {
     this.isLoading = true;
-    console.log("FORM:: " + JSON.stringify(this.signupForm.value))
     this.authService.register(this.signupForm.value).subscribe(
       data => {
-        console.log(data);
         this.isSuccessful = true;
         this.isSignUpFailed = false;
         this.errorMessage = 'Registration successful. Please Login'
         this.isLoading = false;
         this.isAlertOpen = true;
+        this.signupForm.reset();
       },
       err => {
         this.errorMessage = err.error.message;

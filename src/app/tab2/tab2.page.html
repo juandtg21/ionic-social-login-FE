@@ -1,12 +1,58 @@
-<ion-header [translucent]="true">
-  <ion-toolbar>
-    <ion-title>
-      Contacts
-    </ion-title>
+<ion-header class="title-header">
+  <ion-toolbar color="primary">
+    <ion-title>Fire Chat</ion-title>
+    <ion-buttons slot="end">
+      <ion-button fill="clear" id="popover">
+        <ion-icon slot="icon-only" name="ellipsis-vertical-outline"></ion-icon>
+      </ion-button>
+    </ion-buttons>
   </ion-toolbar>
 </ion-header>
 
-<ion-content>
+<ion-content color="light">
+  <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+    <ion-refresher-content></ion-refresher-content>
+  </ion-refresher>
+  <app-empty-screen 
+    *ngIf="chatService.chatRooms?.value?.length == 0" 
+    [model]="model">
+    
+  </app-empty-screen>
+
+  <ng-container *ngIf="chatService.chatRooms as rooms$">
+
+    <ion-list *ngIf="rooms$?.value?.length > 0">
+  
+      <ion-list-header class="ion-padding-bottom" color="light">
+        RECENT CHATS
+      </ion-list-header>
+  
+      <ion-item
+        *ngFor="let room of rooms$?.value" 
+        (click)="getChat(room)"
+        [detail]="true">
+        <ng-container *ngIf="room as user">
+          <ion-avatar slot="start">
+            <img [src]="user?.picture" />
+          </ion-avatar>
+          <ion-label>
+            {{user?.displayName}}<span class='badge' *ngIf="isNotify">1</span>
+            <!-- <p>
+              <ion-text>
+                message
+              </ion-text>
+            </p> -->
+          </ion-label>
+          <!-- <ion-text slot="end" color="medium">10:00 AM</ion-text> -->
+        </ng-container>
+      </ion-item>
+      <ion-refresher slot="fixed" (ionRefresh)="handleRefresh($event)">
+        <ion-refresher-content></ion-refresher-content>
+      </ion-refresher>
+    </ion-list>
+
+  </ng-container>
+
 
   <ion-fab slot="fixed" horizontal="end" vertical="bottom">
     <ion-fab-button (click)="newChat()">

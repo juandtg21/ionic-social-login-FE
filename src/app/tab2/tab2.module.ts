@@ -7,6 +7,7 @@ import { ExploreContainerComponentModule } from '../explore-container/explore-co
 
 import { Tab2PageRoutingModule } from './tab2-routing.module';
 import { UserListComponent } from '../user-list/user-list.component';
+import { ComponentsModule } from '../components.module';
 
 @NgModule({
   imports: [
@@ -15,8 +16,8 @@ import { UserListComponent } from '../user-list/user-list.component';
     FormsModule,
     ExploreContainerComponentModule,
     Tab2PageRoutingModule,
-    
+    ComponentsModule
   ],
-  declarations: [Tab2Page, UserListComponent],
+  declarations: [Tab2Page, UserListComponent]
 })
 export class Tab2PageModule {}
