@@ -42,7 +42,7 @@ export class WebsocketsService {
   subscribeToChatMessages(): void {
     const that = this;
     const chatRoomId = this.chatService.chatRoomId;
-    this.stompClient.subscribe(`/user/${chatRoomId}/queue/messages`, function (message) {
+    this.stompClient.subscribe(`/topic/messages.chatroom.${chatRoomId}`, function (message) {
       const parsedMessage = JSON.parse(message.body);
       if (parsedMessage.chatRoomId === chatRoomId) {
         that.chatService.chats.push(parsedMessage);
@@ -57,7 +57,7 @@ export class WebsocketsService {
   subscribeToChatRoomReload(): void {
     const that = this;
     const userEmail = this.tokenService.getUser().email;
-    this.stompClient.subscribe(`/user/${userEmail}/queue/reload`, function (responseMessage) {
+    this.stompClient.subscribe(`/topic/reload.user.${userEmail}`, function (responseMessage) {
       const userDto: any = JSON.parse(responseMessage.body);
       if (userDto.body) {
         that.chatService.chatRooms.next([]); // Clear the chatRooms list
@@ -69,7 +69,7 @@ export class WebsocketsService {
   subscribeToTypingNotifications(): void {
     const that = this;
     const chatRoomId = this.chatService.chatRoomId;
-    this.stompClient.subscribe(`/user/${chatRoomId}/queue/typing`, function (typing) {
+    this.stompClient.subscribe(`/topic/typing.chatroom.${chatRoomId}`, function (typing) {
       const parsedMessage = JSON.parse(typing.body);
       if (parsedMessage.email === that.chatService.currentChatUser.email) {
         that.chatService.isTyping = parsedMessage.isTyping;

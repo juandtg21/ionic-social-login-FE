@@ -33,7 +33,7 @@
         [detail]="true">
         <ng-container *ngIf="room as user">
           <ion-avatar slot="start">
-            <img [src]="user?.picture != null ? user?.picture : '//ssl.gstatic.com/accounts/ui/avatar_2x.png'" />
+            <img [src]="user?.picture" />
           </ion-avatar>
           <ion-label>
             {{user?.displayName}}<span class='badge' *ngIf="isNotify">1</span>
