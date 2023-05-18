@@ -98,7 +98,7 @@ export class Tab2Page implements OnInit, OnDestroy {
             this.chatService.picture = item?.picture;
             this.isNotify = false;
             this.webSocketService.connectAndSubscribeToQueues();
-            this.router.navigate(['/tabs', 'tab2', 'chats', rooms[roomIndex].roomId], navData);
+            this.router.navigate(['/tabs', 'contacts', 'chats', rooms[roomIndex].roomId], navData);
           } else {
             console.error('Matching room not found for item:', item?.id);
           }
@@ -127,7 +127,7 @@ export class Tab2Page implements OnInit, OnDestroy {
         }
     };
     this.webSocketService.connectAndSubscribeToQueues();
-    this.router.navigate(['/tabs', 'tab2', 'chats', item?.roomId], navData);
+    this.router.navigate(['/tabs', 'contacts', 'chats', item?.roomId], navData);
   }
 
   getUser(user: any) {

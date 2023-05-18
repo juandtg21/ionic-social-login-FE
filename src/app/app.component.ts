@@ -29,7 +29,7 @@ export class AppComponent {
 
       this.username = user.displayName;
       this.picture = user.picture;
-      this.router.navigate(['/tabs/tab1']);
+      this.router.navigate(['/tabs/home']);
     }
   }
 }

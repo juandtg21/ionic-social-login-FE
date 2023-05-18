@@ -90,7 +90,7 @@ export class LoginPage implements OnInit {
     this.isLoginFailed = false;
     this.isLoggedIn = true;
     this.currentUser = this.tokenStorage.getUser();
-    this.router.navigate(['/tabs/tab1']);
+    this.router.navigate(['/tabs/home']);
   }
   
 }

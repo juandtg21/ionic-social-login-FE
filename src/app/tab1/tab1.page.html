@@ -9,7 +9,6 @@
 <ion-content>
   <div class="card-center">
     <ion-card *ngFor="let p of people" [style.position]="'absolute'">
-      <div class="heart-animation" [class.show-heart-animation]="p.showHeartAnimation"></div>
       <img [src]="p.picture != null ? p.picture : 'https://placeimg.com/300/300/arch'" [style.width]="'100%'">
       <ion-card-header>
         <ion-card-title>{{ p.displayName }}</ion-card-title>
